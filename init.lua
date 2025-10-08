@@ -53,7 +53,7 @@ require("lazy").setup({
         local configs = require("nvim-treesitter.configs")
 
         configs.setup({
-            ensure_installed = { "c", "cpp", "python", "lua", "html" },
+            ensure_installed = { "c", "cpp", "python", "bash", "lua", "html" },
             sync_install = false,
             highlight = { enable = true },
             indent = { enable = true },
@@ -61,22 +61,41 @@ require("lazy").setup({
       end
     },
 
-
-    {
-     "mason-org/mason-lspconfig.nvim",
-    opts = {
-        ensure_installed = { "lua_ls", "rust_analyzer" },
-    },
-    dependencies = {
-        { "mason-org/mason.nvim", opts = {} },
-        "neovim/nvim-lspconfig",
-    },
-    },
   },
 
   -- Configure any other settings here. See the documentation for more details.
   -- automatically check for plugin updates
   checker = { enabled = true, notify = false },
+})
+
+--------------------------------- LSP stuff -------------------------------------------------
+
+vim.lsp.config["lua-language-server"] = {
+  cmd = { 'lua-language-server', '--background-index' },
+  root_markers = { '.luarc.json' },
+  filetypes = { 'lua' },
+}
+
+vim.lsp.enable('lua-language-server')
+
+
+vim.lsp.config["clangd"] = {
+  cmd = { 'clangd', '--background-index' },
+  root_markers = { 'compile_commands.json', 'compile_flags.txt' },
+  filetypes = { 'c', 'cpp' },
+}
+
+vim.lsp.enable('clangd')
+
+
+
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(ev)
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
+    if client:supports_method('textDocument/completion') then
+      vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+    end
+  end,
 })
 
 ----------------------------------------------------------------------------------
@@ -125,4 +144,3 @@ vim.cmd [[
 
 ---- saves history even when closed
 vim.o.undofile = true
-vim.o.undodir = vim.fn.stdpath("config") .. "/undo"
