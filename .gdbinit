@@ -37,6 +37,7 @@ macro define offsetof(t, f) &((t *) 0)->f
 # info variables coredump* // can find reg ex variables
 # info variables -t int // varialble type
 # info func?
+# info files / info target
 # 
 # referece variavles from specific files
 # p &'mempool.c'::lock
