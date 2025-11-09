@@ -1,6 +1,32 @@
 set history save on
 set history size 10000
 set history filename ~/.gdb_history
+set listsize 20
+
+#set logging on # will print output into a text file in local dir 
+# might be useful to use in conjunction with another terminal opened
+# side by side
+#set logging off
+
+#py
+#class GrepCmd (gdb.Command):
+#    """Execute command, but only show lines matching the pattern
+#    Usage: grep_cmd <cmd> <pattern> """
+#
+#    def __init__ (_):
+#        super ().__init__ ("grep_cmd", gdb.COMMAND_STATUS)
+#
+#    def invoke (_, args_raw, __):
+#        args = gdb.string_to_argv(args_raw)
+#        if len(args) != 2:
+#            print("Wrong parameters number. Usage: grep_cmd <cmd> <pattern>")
+#        else:
+#            for line in gdb.execute(args[0], to_string=True).splitlines():
+#                if args[1] in line:
+#                    print(line)
+#
+#GrepCmd() # required to get it registered
+#end
 
 # Print backtrace of all threads
 define btall
@@ -9,21 +35,30 @@ end
 
 macro define offsetof(t, f) &((t *) 0)->f
 
-
-
+########################################################################
+#
 # mostly taken from https://interrupt.memfault.com/blog/advanced-gdb#essentials
 # check this out https://interrupt.memfault.com/blog/automate-debugging-with-gdb-python-api 
 # for some python configuration of gdb
+# also do use some llm for some helpful nudging
 #
-## basics you already probably know
+################# basics you should probably know #################
 #
 # print
-# break
-# watch
+# break # info breakpoints
+# watch # info watchpoints
 # bt
 # run
 # help info
+# where
+# info locals
+# info sources // actually shows fils used to make everything 
+# info functions
+# info functions MyClass // for functions in a class
 #
+#
+## good keep in mind it looks like all agruments that prompts take are or can be  
+# assumened to be in regular expression 
 ## some maybe useful commands
 #
 # list
@@ -38,6 +73,7 @@ macro define offsetof(t, f) &((t *) 0)->f
 # info variables -t int // varialble type
 # info func?
 # info files / info target
+# 
 # 
 # referece variavles from specific files
 # p &'mempool.c'::lock
@@ -106,8 +142,21 @@ macro define offsetof(t, f) &((t *) 0)->f
 # (gdb) break 'BST::add(<TAB>
 # (gdb) break 'BST::add(BST*, BST*)
 #
-#
-#
+## printing classes and class members us c styly syntax
+# (gdb) p this
+# $1 = (Delaunay * const) 0x7fffffffd9d0
+# (gdb) p (Delaunay * const) 0x7fffffffd9d0
+# $2 = (Delaunay * const) 0x7fffffffd9d0
+# (gdb) p *((Delaunay * const) 0x7fffffffd9d0)
+# 
+## some llm workflow guide  
+# (gdb) break main
+# (gdb) run
+# (gdb) print &delaunay.nTri
+# $1 = (int *) 0x55555576b4f0
+# (gdb) watch *(int*)0x55555576b4f0
+# Hardware watchpoint 1: *(int*)0x55555576b4f0
+# (gdb) continue
 #
 #
 #
