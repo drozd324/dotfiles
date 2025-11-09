@@ -2,6 +2,8 @@ set history save on
 set history size 10000
 set history filename ~/.gdb_history
 set listsize 20
+set confirm off
+set print pretty on
 
 #set logging on # will print output into a text file in local dir 
 # might be useful to use in conjunction with another terminal opened
