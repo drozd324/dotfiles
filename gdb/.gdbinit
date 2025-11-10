@@ -18,7 +18,7 @@ set editing on
 # side by side
 #set logging off
 
-set extended-prompt \[\e[1;32m\](gdb) $ \[\e[0m\]
+set extended-prompt \[\e[1;32m\](gdb) \[\e[0;37m\]$ \[\e[0m\]
 
 tui enable
 layout src

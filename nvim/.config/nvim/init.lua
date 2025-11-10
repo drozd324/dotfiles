@@ -186,8 +186,10 @@ vim.api.nvim_create_autocmd("lspattach", {
 			toggle_buffer_disgnostics()
 		end, opts)
 
-		vim.keymap.set("n", "<leader>lf", '<cmd>lua require("conform").format()<CR>')
-		vim.keymap.set("v", "<leader>lf", '<cmd>lua require("conform").format()<CR>')
+--		vim.keymap.set("n", "<leader>lf", '<cmd>lua require("conform").format()<CR>')
+--		vim.keymap.set("v", "<leader>lf", '<cmd>lua require("conform").format()<CR>')
+        vim.keymap.set('n', "<leader>lf", '<cmd>lua vim.lsp.buf.format()<CR>')
+		vim.keymap.set('v', "<leader>lf", '<cmd>lua vim.lsp.buf.format()<CR>')
 
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_next, opts)
 		vim.keymap.set("n", "]d", vim.diagnostic.goto_prev, opts)
