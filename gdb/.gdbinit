@@ -24,7 +24,7 @@ tui enable
 layout src
 focus cmd
 
-winheight src 15
+winheight src 30
 
 ########################################################################
 #
