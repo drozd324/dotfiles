@@ -248,9 +248,22 @@ vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" 
 vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Telescope help tags" })
 
 -- Lsp
-vim.keymap.set("n", "<leader>rf", builtin.lsp_references, { desc = "Telescope show lsp refs" })
+vim.keymap.set("n", "<leader>rr", builtin.lsp_references, { desc = "Telescope show lsp refs" })
 vim.keymap.set("n", "<leader>tds", builtin.lsp_document_symbols, { desc = "Telescope show document symbols" })
 vim.keymap.set("n", "<leader>tws", builtin.lsp_workspace_symbols, { desc = "Telescope show workspace symbols" })
+
+-- Enable line numbers in Telescope preview window
+--vim.api.nvim_create_autocmd("User", {
+--  pattern = "TelescopePreviewerLoaded",
+--  callback = function(event)
+--    local bufnr = event.buf
+--    -- Enable absolute and relative line numbers
+--    vim.api.nvim_buf_set_option(bufnr, "number", true)
+--    --vim.api.nvim_buf_set_option(bufnr, "relativenumber", false) -- set true if you want relative
+--  end,
+--})
+
+vim.cmd "autocmd User TelescopePreviewerLoaded setlocal number"
 
 ----------------------------------------------------------------------------------
 
