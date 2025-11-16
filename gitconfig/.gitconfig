@@ -1,0 +1,16 @@
+[user]
+	email = drozdpk@gmail.com
+	name = Patryk
+
+[core]
+    pager = delta  --side-by-side --line-numbers
+
+[interactive]
+    diffFilter = delta 
+
+[delta]
+    navigate = true
+    dark = true
+
+[merge]
+    conflictStyle = zdiff3
