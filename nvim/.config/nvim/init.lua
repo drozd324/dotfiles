@@ -135,15 +135,19 @@ require("lazy").setup({
 			version = false, -- Never set this value to "*"! Never!
 			---@module 'avante'
 			---@type avante.Config
+			hints = {
+				enabled = false,
+			},
 			opts = {
 				-- add any opts here this file can contain specific instructions for your project
 				instructions_file = "avante.md",
 				-- for example
 				provider = "copilot",
---				web_search_engine = {
---					provider = "tavily",
---					proxy = nil, -- proxy support, e.g., http://127.0.0.1:7890
---				},
+				--mode = "legacy", -- Switch from "agentic" to "legacy"
+				web_search_engine = {
+					provider = "tavily",
+					proxy = nil, -- proxy support, e.g., http://127.0.0.1:7890
+				},
 			},
 			dependencies = {
 				"nvim-lua/plenary.nvim",
@@ -185,6 +189,24 @@ require("lazy").setup({
 			},
 		},
 
+		{
+			"gruvw/strudel.nvim",
+			build = "npm ci",
+			ft = { "strudel", "javascript", "typescript" },
+			config = function()
+				local strudel = require("strudel")
+				strudel.setup()
+
+				vim.keymap.set("n", "<leader>sl", strudel.launch, { desc = "Launch Strudel" })
+				vim.keymap.set("n", "<leader>sq", strudel.quit, { desc = "Quit Strudel" })
+				vim.keymap.set("n", "<leader>st", strudel.toggle, { desc = "Strudel Toggle Play/Stop" })
+				vim.keymap.set("n", "<leader>su", strudel.update, { desc = "Strudel Update" })
+				vim.keymap.set("n", "<leader>ss", strudel.stop, { desc = "Strudel Stop Playback" })
+				vim.keymap.set("n", "<leader>sb", strudel.set_buffer, { desc = "Strudel set current buffer" })
+				vim.keymap.set("n", "<leader>sx", strudel.execute, { desc = "Strudel execute buffer" })
+			end,
+		},
+
 	},
 
 	checker = { enabled = true, notify = false },
@@ -205,6 +227,28 @@ vim.lsp.config["pyright"] = {
 	root_markers = { ".git", "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt" },
 }
 vim.lsp.enable("pyright")
+
+vim.lsp.config["typescript-language-server"] = {
+	cmd = { "typescript-language-server", "--stdio" },
+
+	filetypes = {
+		"javascript",
+		"javascriptreact",
+		"javascript.jsx",
+		"typescript",
+		"typescriptreact",
+		"typescript.tsx",
+	},
+
+	root_markers = {
+		"package.json",
+		"tsconfig.json",
+		"jsconfig.json",
+		".git",
+	},
+}
+
+vim.lsp.enable("typescript-language-server")
 
 
 vim.lsp.config["clangd"] = {
@@ -235,7 +279,7 @@ vim.api.nvim_create_autocmd("lspattach", {
 		--vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
 		vim.keymap.set("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
 
-		vim.keymap.set("n", "<leader>fd", function() vim.diagnostic.open_float({ border = "single" }) end, opts)
+		vim.keymap.set("n", "<leader>df", function() vim.diagnostic.open_float({ border = "single" }) end, opts)
 		vim.keymap.set("n", "<leader>td", function() toggle_buffer_disgnostics() end, opts)
 
 		-- vim.keymap.set("n", "<leader>lf", '<cmd>lua require("conform").format()<CR>')
@@ -300,3 +344,12 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- saves history even when closed
 vim.o.undofile = true
+
+-- convenient command to open config
+vim.api.nvim_create_user_command(
+	"Config",
+	function()
+		vim.cmd("e $HOME/.config/nvim/init.lua")
+	end,
+	{}
+)
