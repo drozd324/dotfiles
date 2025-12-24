@@ -45,7 +45,8 @@ require("lazy").setup({
 
 		{
 			"nvim-treesitter/nvim-treesitter",
-			build = ":TSUpdate",
+			lazy = false,
+			build = ':TSUpdate'
 		},
 
 		{
@@ -135,10 +136,14 @@ require("lazy").setup({
 			version = false, -- Never set this value to "*"! Never!
 			---@module 'avante'
 			---@type avante.Config
-			hints = {
-				enabled = false,
-			},
 			opts = {
+				ui = {
+					show_hints = false,
+				},
+				hints = {
+					enabled = false,
+				},
+				virtual_text = false,
 				-- add any opts here this file can contain specific instructions for your project
 				instructions_file = "avante.md",
 				-- for example
@@ -189,6 +194,7 @@ require("lazy").setup({
 			},
 		},
 
+
 		{
 			"gruvw/strudel.nvim",
 			build = "npm ci",
@@ -221,33 +227,23 @@ vim.lsp.config["lua-language-server"] = {
 }
 vim.lsp.enable("lua-language-server")
 
-vim.lsp.config["pyright"] = {
-	cmd = { "pyright-langserver", "--stdio" },
+vim.lsp.config["pylsp"] = {
+	cmd = { "pylsp" },
+	root_markers = {
+		"pyproject.toml",
+		"setup.py",
+		"setup.cfg",
+		"requirements.txt",
+	},
 	filetypes = { "python" },
-	root_markers = { ".git", "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt" },
 }
-vim.lsp.enable("pyright")
+vim.lsp.enable("pylsp")
 
 vim.lsp.config["typescript-language-server"] = {
 	cmd = { "typescript-language-server", "--stdio" },
-
-	filetypes = {
-		"javascript",
-		"javascriptreact",
-		"javascript.jsx",
-		"typescript",
-		"typescriptreact",
-		"typescript.tsx",
-	},
-
-	root_markers = {
-		"package.json",
-		"tsconfig.json",
-		"jsconfig.json",
-		".git",
-	},
+	filetypes = { "javascript", },
+	root_markers = { "package.json", "tsconfig.json", "jsconfig.json", },
 }
-
 vim.lsp.enable("typescript-language-server")
 
 
@@ -275,27 +271,24 @@ vim.api.nvim_create_autocmd("lspattach", {
 		vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
 		vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
 		vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-		--vim.keymap.set("n", "<leader>gd", vim.lsp.buf.type_definition, opts)
 		--vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
 		vim.keymap.set("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
 
 		vim.keymap.set("n", "<leader>df", function() vim.diagnostic.open_float({ border = "single" }) end, opts)
 		vim.keymap.set("n", "<leader>td", function() toggle_buffer_disgnostics() end, opts)
 
-		-- vim.keymap.set("n", "<leader>lf", '<cmd>lua require("conform").format()<CR>')
-		-- vim.keymap.set("v", "<leader>lf", '<cmd>lua require("conform").format()<CR>')
 		vim.keymap.set('n', "<leader>lf", '<cmd>lua vim.lsp.buf.format()<CR>')
 		vim.keymap.set('v', "<leader>lf", '<cmd>lua vim.lsp.buf.format()<CR>')
 
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_next, opts)
 		vim.keymap.set("n", "]d", vim.diagnostic.goto_prev, opts)
-		vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
-		-- vim.keymap.set("n", "<leader>ref", vim.lsp.buf.references, opts)
-		-- vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
+		--vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
+		vim.keymap.set("n", "<leader>rr", vim.lsp.buf.references, opts)
+		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
 		-- vim.keymap.set("i", "Find Appropriate Keymap", vim.lsp.buf.signature_help, opts)
-		--		vim.keymap.set("n", "<leader>ic", '<cmd>lua vim.lsp.buf.incoming_calls()<CR>')
-		--		vim.keymap.set("n", "<leader>ci", '<cmd>lua vim.lsp.buf.outgoing_calls()<CR>')
-		--		vim.keymap.set("n", "<leader>ss", '<cmd>lua vim.lsp.buf.document_symbol()<CR>')
+		vim.keymap.set("n", "<leader>ic", '<cmd>lua vim.lsp.buf.incoming_calls()<CR>')
+		vim.keymap.set("n", "<leader>ci", '<cmd>lua vim.lsp.buf.outgoing_calls()<CR>')
+		vim.keymap.set("n", "<leader>ss", '<cmd>lua vim.lsp.buf.document_symbol()<CR>')
 	end,
 })
 
