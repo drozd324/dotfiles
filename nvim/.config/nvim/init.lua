@@ -43,10 +43,28 @@ require("lazy").setup({
 			},
 		},
 
-		{
-			"nvim-treesitter/nvim-treesitter",
-			lazy = false,
-			build = ':TSUpdate'
+		{ -- Highlight, edit, and navigate code
+			'nvim-treesitter/nvim-treesitter',
+			build = ':TSUpdate',
+			opts = {
+				auto_install = true,
+				ensure_installed = {
+					'c',
+					'cpp',
+					'python',
+					'bash',
+					'javascript',
+					'html',
+					'lua',
+					'luadoc',
+					'markdown',
+					'markdown_inline',
+					'vim',
+				},
+				highlight = {
+					enable = true,
+				},
+			},
 		},
 
 		{
@@ -56,7 +74,6 @@ require("lazy").setup({
 
 		{
 			"nvim-telescope/telescope.nvim",
-			tag = "0.1.8",
 			dependencies = {
 				"nvim-lua/plenary.nvim",
 				{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
@@ -70,17 +87,12 @@ require("lazy").setup({
 
 				vim.keymap.set("n", "<leader>ic", builtin.lsp_incoming_calls, { desc = "Telescope show incoming calls" })
 				vim.keymap.set("n", "<leader>ci", builtin.lsp_outgoing_calls, { desc = "Telescope show ougoing calls" })
-				vim.keymap.set("n", "<leader>tds", builtin.lsp_document_symbols,
-					{ desc = "Telescope show document symbols" })
-				vim.keymap.set("n", "<leader>tws", builtin.lsp_workspace_symbols,
-					{ desc = "Telescope show workspace symbols" })
-
-				vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Telescope help tags" })
+				vim.keymap.set("n", "<leader>tds", builtin.lsp_document_symbols, { desc = "Telescope show document symbols" })
+				vim.keymap.set("n", "<leader>tws", builtin.lsp_workspace_symbols, { desc = "Telescope show workspace symbols" })
 
 				-- turn on linenumbers in telescope preview
 				vim.cmd("autocmd User TelescopePreviewerLoaded setlocal number")
 			end,
-
 		},
 
 		{
@@ -127,70 +139,21 @@ require("lazy").setup({
 
 		{ -- avante config seems quite delicate dont recommend touching it too much
 			"yetone/avante.nvim",
-			-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-			-- ⚠️ must add this setting! ! !
 			build = vim.fn.has("win32") ~= 0
 				and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
 				or "make",
 			event = "VeryLazy",
-			version = false, -- Never set this value to "*"! Never!
-			---@module 'avante'
-			---@type avante.Config
+			version = false,
 			opts = {
-				ui = {
-					show_hints = false,
-				},
-				hints = {
-					enabled = false,
-				},
+				selection = { hint_display = "none", },
 				virtual_text = false,
-				-- add any opts here this file can contain specific instructions for your project
-				instructions_file = "avante.md",
-				-- for example
+				instructions_file = "avante.md", -- add any opts here this file can contain specific instructions for your project
 				provider = "copilot",
 				--mode = "legacy", -- Switch from "agentic" to "legacy"
-				web_search_engine = {
-					provider = "tavily",
-					proxy = nil, -- proxy support, e.g., http://127.0.0.1:7890
-				},
 			},
 			dependencies = {
 				"nvim-lua/plenary.nvim",
 				"MunifTanjim/nui.nvim",
-				--- The below dependencies are optional,
-				"nvim-mini/mini.pick", -- for file_selector provider mini.pick
-				"nvim-telescope/telescope.nvim", -- for file_selector provider telescope
-				"hrsh7th/nvim-cmp",  -- autocompletion for avante commands and mentions
-				"ibhagwan/fzf-lua",  -- for file_selector provider fzf
-				"stevearc/dressing.nvim", -- for input provider dressing
-				"folke/snacks.nvim", -- for input provider snacks
-				"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-				"zbirenbaum/copilot.lua", -- for providers='copilot'
-				{
-					-- support for image pasting
-					"HakonHarnes/img-clip.nvim",
-					event = "VeryLazy",
-					opts = {
-						-- recommended settings
-						default = {
-							embed_image_as_base64 = false,
-							prompt_for_file_name = false,
-							drag_and_drop = {
-								insert_mode = true,
-							},
-							-- required for Windows users
-							use_absolute_path = true,
-						},
-					},
-				},
-				{
-					-- Make sure to set this up properly if you have lazy=true
-					'MeanderingProgrammer/render-markdown.nvim',
-					opts = {
-						file_types = { "markdown", "Avante" },
-					},
-					ft = { "markdown", "Avante" },
-				},
 			},
 		},
 
@@ -283,7 +246,6 @@ vim.api.nvim_create_autocmd("lspattach", {
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_next, opts)
 		vim.keymap.set("n", "]d", vim.diagnostic.goto_prev, opts)
 		--vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
-		vim.keymap.set("n", "<leader>rr", vim.lsp.buf.references, opts)
 		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
 		-- vim.keymap.set("i", "Find Appropriate Keymap", vim.lsp.buf.signature_help, opts)
 		vim.keymap.set("n", "<leader>ic", '<cmd>lua vim.lsp.buf.incoming_calls()<CR>')
@@ -343,6 +305,17 @@ vim.api.nvim_create_user_command(
 	"Config",
 	function()
 		vim.cmd("e $HOME/.config/nvim/init.lua")
+	end,
+	{}
+)
+
+-- convenient command should clean up all nvim cache and plugins
+vim.api.nvim_create_user_command(
+	"CleanAll",
+	function()
+		vim.cmd("!rm -rf $HOME/.local/share/nvim/")
+		vim.cmd("!rm -rf $HOME/.local/state/nvim/")
+		vim.cmd("!rm -rf $HOME/.cache/nvim/")
 	end,
 	{}
 )
