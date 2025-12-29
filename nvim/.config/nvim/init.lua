@@ -87,8 +87,10 @@ require("lazy").setup({
 
 				vim.keymap.set("n", "<leader>ic", builtin.lsp_incoming_calls, { desc = "Telescope show incoming calls" })
 				vim.keymap.set("n", "<leader>ci", builtin.lsp_outgoing_calls, { desc = "Telescope show ougoing calls" })
-				vim.keymap.set("n", "<leader>tds", builtin.lsp_document_symbols, { desc = "Telescope show document symbols" })
-				vim.keymap.set("n", "<leader>tws", builtin.lsp_workspace_symbols, { desc = "Telescope show workspace symbols" })
+				vim.keymap.set("n", "<leader>tds", builtin.lsp_document_symbols,
+					{ desc = "Telescope show document symbols" })
+				vim.keymap.set("n", "<leader>tws", builtin.lsp_workspace_symbols,
+					{ desc = "Telescope show workspace symbols" })
 
 				-- turn on linenumbers in telescope preview
 				vim.cmd("autocmd User TelescopePreviewerLoaded setlocal number")
@@ -137,7 +139,7 @@ require("lazy").setup({
 			},
 		},
 
-		{ -- avante config seems quite delicate dont recommend touching it too much
+		{ -- avante config seems quite delicate don't recommend touching it too much
 			"yetone/avante.nvim",
 			build = vim.fn.has("win32") ~= 0
 				and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
