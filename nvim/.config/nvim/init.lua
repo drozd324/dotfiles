@@ -43,27 +43,13 @@ require("lazy").setup({
 			},
 		},
 
-		{ -- Highlight, edit, and navigate code
+		{
 			'nvim-treesitter/nvim-treesitter',
+			lazy = false, -- or 
+			event = { "BufReadPost", "BufNewFile" },
 			build = ':TSUpdate',
-			opts = {
-				auto_install = true,
-				ensure_installed = {
-					'c',
-					'cpp',
-					'python',
-					'bash',
-					'javascript',
-					'html',
-					'lua',
-					'luadoc',
-					'markdown',
-					'markdown_inline',
-					'vim',
-				},
-				highlight = {
-					enable = true,
-				},
+			highlight = {
+				enable = true,
 			},
 		},
 
@@ -159,7 +145,6 @@ require("lazy").setup({
 			},
 		},
 
-
 		{
 			"gruvw/strudel.nvim",
 			build = "npm ci",
@@ -196,7 +181,7 @@ vim.lsp.config["pylsp"] = {
 	cmd = { "pylsp" },
 	root_markers = {
 		"pyproject.toml",
-		"setup.py",
+		"setuip.py",
 		"setup.cfg",
 		"requirements.txt",
 	},
@@ -206,8 +191,8 @@ vim.lsp.enable("pylsp")
 
 vim.lsp.config["typescript-language-server"] = {
 	cmd = { "typescript-language-server", "--stdio" },
-	filetypes = { "javascript", },
 	root_markers = { "package.json", "tsconfig.json", "jsconfig.json", },
+	filetypes = { "javascript", },
 }
 vim.lsp.enable("typescript-language-server")
 
@@ -278,7 +263,7 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
-------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
 
 vim.cmd("colorscheme evergarden")
 
@@ -321,3 +306,20 @@ vim.api.nvim_create_user_command(
 	end,
 	{}
 )
+
+vim.api.nvim_create_autocmd({"BufReadPost", "BufNewFile"}, {
+  callback = function(args)
+    local buf = args.buf
+    local ft = vim.bo[buf].filetype
+
+    -- ignore Telescope preview buffers
+    if vim.api.nvim_buf_get_option(buf, "buftype") ~= "" then
+      return
+    end
+
+    -- attach if parser exists
+    if pcall(vim.treesitter.get_parser, buf, ft) then
+      vim.treesitter.start(buf, ft)
+    end
+  end,
+})
