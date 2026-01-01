@@ -1,47 +1,62 @@
-# load modules
 zmodload zsh/complist
-autoload -U compinit && compinit # 
-#autoload -U tetris # main attraction of zsh, obviously
-autoload -Uz tetriscurses
 
-bindkey -e # default bash bahaviour
+autoload -Uz compinit; compinit
 
-# convenient directory navigation? 
-setopt AUTO_PUSHD           # Push the current directory visited on the stack.
-setopt PUSHD_IGNORE_DUPS    # Do not store duplicates in the stack.
-setopt PUSHD_SILENT         # Do not print the directory stack after pushd or popd.
-alias d='dirs -v'
-for index ({1..9}) alias "$index"="cd +${index}"; unset index
+zstyle ':completion:*' completer _expand _complete _correct _approximate    
+zstyle ':completion:*' group-name ''    
+zstyle ':completion:*' menu select=2    
+eval "$(dircolors -b)"    
+#zstyle ':completion:*' matcher-list '' 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=* l:|=*'    
+zstyle ':completion:*' menu select=long    
+zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s    
+zstyle ':completion:*' use-compctl false    
+zstyle ':completion:*' verbose true    
+    
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'    
+zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'    
+
+# better mv
+autoload -Uz zmv; alias mv=zmv
+
+# better cd
+eval "$(zoxide init zsh)"; alias cd=z
+
+autoload -Uz tetriscurses # tetris
+bindkey -e # default bash (emacs) bahaviour
 
 # main opts
-setopt append_history inc_append_history share_history # better history
-# on exit, history appends rather than overwrites; history is appended as soon as cmds executed; history shared across sessions
-setopt auto_menu menu_complete # autocmp first menu match
+# better history
+setopt append_history inc_append_history histignorealldups sharehistory
+HISTSIZE=10000    
+SAVEHIST=10000   
+HISTFILE=~/.zsh_history    
+
+setopt menu_complete # autocmp first menu match
 setopt autocd # type a dir to cd
-setopt auto_param_slash # when a dir is completed, add a / instead of a trailing space
+#setopt auto_param_slash # when a dir is completed, add a / instead of a trailing space
+
+# zsh globing
+# ls ^(*.o) # to negate results
+# ls *.o~file.txt # to exclude file
+# ls ^(*.o)~file.txt # to exclude file
+
 #setopt no_case_glob no_case_match # make cmp case insensitive
-#setopt globdots # include dotfiles
-#setopt extended_glob # match ~ # ^
-unsetopt prompt_sp # don't autoclean blanklines
+
+setopt extended_glob # match ~ # ^
+#unsetopt prompt_sp # don't autoclean blanklines
 
 ## set up prompt
-autoload -U colors && colors
-#PROMPT="%F{#70c6ff}%B${NEWLINE}${USER}@${$(hostname)}%b %F{#E5E9F0}❯ "
-PROMPT="%F{#1dcc75}%B${NEWLINE}${USER}@${$(hostname)}%b %F{#E5E9F0}❯ "
+autoload -Uz colors && colors
+PROMPT="%F{#1dcc75}%B${NEWLINE}${USER}@${$(hostname)}%b %f%k%b❯ " 
 
-## autosuggestions
-## requires zsh-autosuggestions
-# source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-#
-## syntax highlighting
-## requires zsh-syntax-highlighting package
-#source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-#
+# requires zsh-autosuggestions
+source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# requires zsh-syntax-highlighting package # i think this is a bit too much
+#source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-# default programs
 #export DISPLAY=:0 # useful for some scripts
 export EDITOR="nvim"
 alias vi=nvim
 alias ls='ls -v --color="auto" --time-style=posix-long-iso --group-directories-first'
+#alias ls='ls --color="auto"'
 
-#eval "$(zoxide init bash)"
