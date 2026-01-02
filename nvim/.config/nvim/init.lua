@@ -70,6 +70,7 @@ require("lazy").setup({
 				vim.keymap.set("n", "<leader>rg", builtin.live_grep, { desc = "Telescope live grep" })
 				vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
 				vim.keymap.set("n", "<leader>rr", builtin.lsp_references, { desc = "Telescope show lsp refs" })
+				vim.keymap.set("n", "<leader>cb", builtin.current_buffer_fuzzy_find, { desc = "Telescope current buffer fzf" })
 
 				vim.keymap.set("n", "<leader>ic", builtin.lsp_incoming_calls, { desc = "Telescope show incoming calls" })
 				vim.keymap.set("n", "<leader>ci", builtin.lsp_outgoing_calls, { desc = "Telescope show ougoing calls" })
