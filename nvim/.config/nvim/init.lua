@@ -236,8 +236,6 @@ vim.api.nvim_create_autocmd("lspattach", {
 		--vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
 		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
 		-- vim.keymap.set("i", "Find Appropriate Keymap", vim.lsp.buf.signature_help, opts)
-		vim.keymap.set("n", "<leader>ic", '<cmd>lua vim.lsp.buf.incoming_calls()<CR>')
-		vim.keymap.set("n", "<leader>ci", '<cmd>lua vim.lsp.buf.outgoing_calls()<CR>')
 		vim.keymap.set("n", "<leader>ss", '<cmd>lua vim.lsp.buf.document_symbol()<CR>')
 	end,
 })
