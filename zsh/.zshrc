@@ -16,7 +16,7 @@ zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'    
 
 # better mv
-autoload -Uz zmv; alias mv=zmv
+autoload -Uz zmv;
 
 # better cd
 eval "$(zoxide init zsh)"; alias cd=z
@@ -48,6 +48,7 @@ setopt extended_glob # match ~ # ^
 ## set up prompt
 autoload -Uz colors && colors
 PROMPT="%F{#1dcc75}%B${NEWLINE}${USER}@${$(hostname)}%b %f%k%b❯ " 
+#PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\] $ '
 
 # requires zsh-autosuggestions
 source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
@@ -60,3 +61,4 @@ alias vi=nvim
 alias ls='ls -v --color="auto" --time-style=posix-long-iso --group-directories-first'
 #alias ls='ls --color="auto"'
 
+PATH=/home/patryk/builds/rust/build/host/stage0/bin:$PATH
