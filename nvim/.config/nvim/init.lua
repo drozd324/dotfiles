@@ -70,6 +70,7 @@ require("lazy").setup({
 				vim.keymap.set("n", "<leader>rg", builtin.live_grep, { desc = "Telescope live grep" })
 				vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
 				vim.keymap.set("n", "<leader>rr", builtin.lsp_references, { desc = "Telescope show lsp refs" })
+				vim.keymap.set("n", "<leader>cb", builtin.current_buffer_fuzzy_find, { desc = "Telescope current buffer fzf" })
 
 				vim.keymap.set("n", "<leader>ic", builtin.lsp_incoming_calls, { desc = "Telescope show incoming calls" })
 				vim.keymap.set("n", "<leader>ci", builtin.lsp_outgoing_calls, { desc = "Telescope show ougoing calls" })
@@ -263,8 +264,6 @@ vim.api.nvim_create_autocmd("lspattach", {
 		--vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
 		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
 		-- vim.keymap.set("i", "Find Appropriate Keymap", vim.lsp.buf.signature_help, opts)
-		vim.keymap.set("n", "<leader>ic", '<cmd>lua vim.lsp.buf.incoming_calls()<CR>')
-		vim.keymap.set("n", "<leader>ci", '<cmd>lua vim.lsp.buf.outgoing_calls()<CR>')
 		vim.keymap.set("n", "<leader>ss", '<cmd>lua vim.lsp.buf.document_symbol()<CR>')
 	end,
 })
