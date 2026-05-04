@@ -1,4 +1,3 @@
-------------------------------------- Setup lazy.nvim ------------------------------------
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
 	local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -45,12 +44,8 @@ require("lazy").setup({
 
 		{
 			'nvim-treesitter/nvim-treesitter',
-			lazy = false, -- or
-			event = { "BufReadPost", "BufNewFile" },
-			build = ':TSUpdate',
-			highlight = {
-				enable = true,
-			},
+			lazy = false,
+			build = ':TSUpdate'
 		},
 
 		{
@@ -70,7 +65,8 @@ require("lazy").setup({
 				vim.keymap.set("n", "<leader>rg", builtin.live_grep, { desc = "Telescope live grep" })
 				vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
 				vim.keymap.set("n", "<leader>rr", builtin.lsp_references, { desc = "Telescope show lsp refs" })
-				vim.keymap.set("n", "<leader>cb", builtin.current_buffer_fuzzy_find, { desc = "Telescope current buffer fzf" })
+				vim.keymap.set("n", "<leader>cb", builtin.current_buffer_fuzzy_find,
+					{ desc = "Telescope current buffer fzf" })
 
 				vim.keymap.set("n", "<leader>ic", builtin.lsp_incoming_calls, { desc = "Telescope show incoming calls" })
 				vim.keymap.set("n", "<leader>ci", builtin.lsp_outgoing_calls, { desc = "Telescope show ougoing calls" })
@@ -124,44 +120,6 @@ require("lazy").setup({
 				damping = 0.9,
 				never_draw_over_target = true,
 			},
-		},
-
-		{ -- avante config seems quite delicate don't recommend touching it too much
-			"yetone/avante.nvim",
-			build = vim.fn.has("win32") ~= 0
-				and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
-				or "make",
-			event = "VeryLazy",
-			version = false,
-			opts = {
-				selection = { hint_display = "none", },
-				virtual_text = false,
-				instructions_file = "avante.md", -- add any opts here this file can contain specific instructions for your project
-				provider = "copilot",
-				--mode = "legacy", -- Switch from "agentic" to "legacy"
-			},
-			dependencies = {
-				"nvim-lua/plenary.nvim",
-				"MunifTanjim/nui.nvim",
-			},
-		},
-
-		{
-			"gruvw/strudel.nvim",
-			build = "npm ci",
-			ft = { "strudel", "javascript", "typescript" },
-			config = function()
-				local strudel = require("strudel")
-				strudel.setup()
-
-				vim.keymap.set("n", "<leader>sl", strudel.launch, { desc = "Launch Strudel" })
-				vim.keymap.set("n", "<leader>sq", strudel.quit, { desc = "Quit Strudel" })
-				vim.keymap.set("n", "<leader>st", strudel.toggle, { desc = "Strudel Toggle Play/Stop" })
-				vim.keymap.set("n", "<leader>su", strudel.update, { desc = "Strudel Update" })
-				vim.keymap.set("n", "<leader>ss", strudel.stop, { desc = "Strudel Stop Playback" })
-				vim.keymap.set("n", "<leader>sb", strudel.set_buffer, { desc = "Strudel set current buffer" })
-				vim.keymap.set("n", "<leader>sx", strudel.execute, { desc = "Strudel execute buffer" })
-			end,
 		},
 
 	},
@@ -333,20 +291,3 @@ vim.api.nvim_create_user_command(
 	end,
 	{}
 )
-
-vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
-	callback = function(args)
-		local buf = args.buf
-		local ft = vim.bo[buf].filetype
-
-		-- ignore Telescope preview buffers
-		if vim.api.nvim_buf_get_option(buf, "buftype") ~= "" then
-			return
-		end
-
-		-- attach if parser exists
-		if pcall(vim.treesitter.get_parser, buf, ft) then
-			vim.treesitter.start(buf, ft)
-		end
-	end,
-})

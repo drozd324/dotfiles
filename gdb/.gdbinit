@@ -1,11 +1,11 @@
-# to enter tui mode 
-# ctrl+x a
-# to use tui mode nicely
-# ctrl+x o
+# to enter tui mode: ctrl+x a
+# to use tui mode nicely: ctrl+x o
 
 set history save on
 set history size 10000
 set history filename ~/.gdb_history
+
+set debuginfod enabled on
 
 set confirm off
 set print pretty on
@@ -13,10 +13,8 @@ set pagination off
 
 set editing on
 
-#set logging on # will print output into a text file in local dir 
-# might be useful to use in conjunction with another terminal opened
-# side by side
-#set logging off
+# will print output into a text file in local dir 
+set logging on 
 
 set extended-prompt \[\e[1;32m\](gdb) \[\e[0;37m\]$ \[\e[0m\]
 
