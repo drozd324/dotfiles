@@ -1,10 +1,10 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
---vim.g.have_nerd_font = false -- Set to true if you have a Nerd Font installed and selected in the terminal
+vim.g.have_nerd_font = true
 vim.o.number = true
 --vim.o.relativenumber = true
 vim.o.mouse = "a"
---vim.o.showmode = false
+vim.o.showmode = true
 
 vim.o.termguicolors = true
 vim.o.laststatus = 0
@@ -34,12 +34,12 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- convenient command to open config
+-- command to open config
 vim.api.nvim_create_user_command("Config", function()
 	vim.cmd("e $HOME/.config/nvim/init.lua")
 end, {})
 
--- convenient command should clean up all nvim cache and plugins
+-- command should clean up all nvim cache and plugins
 vim.api.nvim_create_user_command("CleanAll", function()
 	vim.cmd("!rm -rf $HOME/.local/share/nvim/")
 	vim.cmd("!rm -rf $HOME/.local/state/nvim/")
@@ -57,19 +57,11 @@ vim.keymap.set("n", "<leader>h", function()
 	end)
 end, { desc = "Switch between source/header" })
 
--- Sets how neovim will display certain whitespace characters in the editor.
---  See `:help 'list'`
---  and `:help 'listchars'`
---
---  Notice listchars is set using `vim.opt` instead of `vim.o`.
---  It is very similar to `vim.o` but offers an interface for conveniently interacting with tables.
---   See `:help lua-options`
---   and `:help lua-guide-options`
 vim.o.list = true
 vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 
 vim.o.inccommand = "split" -- Preview substitutions live, as you type!
-vim.o.confirm = true -- if performing an operation that would fail due to unsaved changes in the buffer (like `:q`), instead raise a dialog asking if you wish to save the current file(s) See `:help 'confirm'`
+-- vim.o.confirm = true
 
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>") -- Clear highlights on search when pressing <Esc> in normal mode See `:help hlsearch`
 vim.diagnostic.config({
@@ -189,7 +181,12 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>fd", builtin.find_files, { desc = "Telescope find files" })
 			vim.keymap.set("n", "<leader>rg", builtin.live_grep, { desc = "Telescope live grep" })
 			vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
-			vim.keymap.set( "n", "<leader>cb", builtin.current_buffer_fuzzy_find, { desc = "Telescope current buffer fzf" })
+			vim.keymap.set(
+				"n",
+				"<leader>cb",
+				builtin.current_buffer_fuzzy_find,
+				{ desc = "Telescope current buffer fzf" }
+			)
 
 			-- turn on linenumbers in telescope preview
 			vim.cmd("autocmd User TelescopePreviewerLoaded setlocal number")
@@ -198,23 +195,24 @@ require("lazy").setup({
 				group = vim.api.nvim_create_augroup("telescope-lsp-attach", { clear = true }),
 				callback = function(event)
 					local buf = event.buf
+					-- stylua: ignore start
 
 					--          vim.keymap.set('n', 'grr', builtin.lsp_references, { buffer = buf, desc = '[G]oto [R]eferences' })
 					--          vim.keymap.set('n', 'gri', builtin.lsp_implementations, { buffer = buf, desc = '[G]oto [I]mplementation' })
-					--          vim.keymap.set('n', 'grd', 
+					--          vim.keymap.set('n', 'grd',
 					--
 					--          vim.keymap.set('n', 'gO', builtin.lsp_document_symbols, { buffer = buf, desc = 'Open Document Symbols' })
 					--          vim.keymap.set('n', 'gW', builtin.lsp_dynamic_workspace_symbols, { buffer = buf, desc = 'Open Workspace Symbols' })
 					--
 					--          vim.keymap.set('n', 'grt', builtin.lsp_type_definitions, { buffer = buf, desc = '[G]oto [T]ype Definition' })
 
-					vim.keymap.set("n", "gd",builtin.lsp_definitions, { buffer = buf, desc = '[G]oto [D]efinition' })
 					--vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-					vim.keymap.set("n", "gi", builtin.lsp_implementations, { buffer = buf, desc = '[G]oto [I]mplementation' })
 
+					vim.keymap.set("n", "gd", builtin.lsp_definitions, { buffer = buf, desc = "[G]oto [D]efinition" })
+					vim.keymap.set( "n", "gi", builtin.lsp_implementations, { buffer = buf, desc = "[G]oto [I]mplementation" })
 					vim.keymap.set("n", "<leader>rr", builtin.lsp_references, { desc = "Telescope show lsp refs" })
-					vim.keymap.set("n", "<leader>ic", builtin.lsp_incoming_calls, { desc = "Telescope show incoming calls" })
-					vim.keymap.set("n", "<leader>ci", builtin.lsp_outgoing_calls, { desc = "Telescope show ougoing calls" })
+					vim.keymap.set( "n", "<leader>ic", builtin.lsp_incoming_calls, { desc = "Telescope show incoming calls" })
+					vim.keymap.set( "n", "<leader>ci", builtin.lsp_outgoing_calls, { desc = "Telescope show ougoing calls" })
 					vim.keymap.set( "n", "<leader>tds", builtin.lsp_document_symbols, { desc = "Telescope show document symbols" })
 					vim.keymap.set( "n", "<leader>tws", builtin.lsp_workspace_symbols, { desc = "Telescope show workspace symbols" })
 
@@ -225,6 +223,8 @@ require("lazy").setup({
 
 					vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
 					vim.keymap.set("n", "<leader>ss", "<cmd>lua vim.lsp.buf.document_symbol()<CR>")
+
+					-- stylua: ignore start
 				end,
 			})
 
@@ -338,7 +338,22 @@ require("lazy").setup({
 
 			---@type table<string, vim.lsp.Config>
 			local servers = {
-				clangd = {},
+				clangd = {
+
+					cmd = {
+						"clangd",
+						"--background-index-priority=low",
+						"--pch-storage=disk",
+						"--clang-tidy",
+						"--clang-tidy-checks=*",
+						"--cross-file-rename",
+						"--background-index",
+						"--query-driver",
+						"--clang-tidy",
+						"--log=verbose",
+						"--pretty",
+					},
+				},
 				rust_analyzer = {},
 
 				-- But for many setups, the LSP (`ts_ls`) will work just fine
@@ -496,62 +511,12 @@ require("lazy").setup({
 		---@module 'blink.cmp'
 		---@type blink.cmp.Config
 		opts = {
-			keymap = {
-				-- 'default' (recommended) for mappings similar to built-in completions
-				--   <c-y> to accept ([y]es) the completion.
-				--    This will auto-import if your LSP supports it.
-				--    This will expand snippets if the LSP sent a snippet.
-				-- 'super-tab' for tab to accept
-				-- 'enter' for enter to accept
-				-- 'none' for no mappings
-				--
-				-- For an understanding of why the 'default' preset is recommended,
-				-- you will need to read `:help ins-completion`
-				--
-				-- No, but seriously. Please read `:help ins-completion`, it is really good!
-				--
-				-- All presets have the following mappings:
-				-- <tab>/<s-tab>: move to right/left of your snippet expansion
-				-- <c-space>: Open menu or open docs if already open
-				-- <c-n>/<c-p> or <up>/<down>: Select next/previous item
-				-- <c-e>: Hide menu
-				-- <c-k>: Toggle signature help
-				--
-				-- See :h blink-cmp-config-keymap for defining your own keymap
-				preset = "default",
-
-				-- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-				--    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
-			},
-
-			appearance = {
-				-- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-				-- Adjusts spacing to ensure icons are aligned
-				nerd_font_variant = "mono",
-			},
-
-			completion = {
-				-- By default, you may press `<c-space>` to show the documentation.
-				-- Optionally, set `auto_show = true` to show the documentation after a delay.
-				documentation = { auto_show = false, auto_show_delay_ms = 500 },
-			},
-
-			sources = {
-				default = { "lsp", "path", "snippets" },
-			},
-
+			keymap = { preset = "default" },
+			appearance = { nerd_font_variant = "mono" },
+			completion = { documentation = { auto_show = false, auto_show_delay_ms = 500 } },
+			sources = { default = { "lsp", "path", "snippets" } },
 			snippets = { preset = "luasnip" },
-
-			-- Blink.cmp includes an optional, recommended rust fuzzy matcher,
-			-- which automatically downloads a prebuilt binary when enabled.
-			--
-			-- By default, we use the Lua implementation instead, but you may enable
-			-- the rust implementation via `'prefer_rust_with_warning'`
-			--
-			-- See :h blink-cmp-config-fuzzy for more information
 			fuzzy = { implementation = "lua" },
-
-			-- Shows a signature help window while you type arguments for a function
 			signature = { enabled = true },
 		},
 	},
@@ -568,27 +533,21 @@ require("lazy").setup({
 			editor = {
 				transparent_background = true,
 				sign = { color = "none" },
-				float = {
-					color = "mantle",
-					invert_border = false,
-				},
-				completion = {
-					color = "surface0",
-				},
+				float = { color = "mantle", invert_border = false },
+				completion = { color = "surface0" },
 			},
 		},
 	},
 
-	-- Highlight todo, notes, etc in comments
-	--  {
-	--    'folke/todo-comments.nvim',
-	--    event = 'VimEnter',
-	--    dependencies = { 'nvim-lua/plenary.nvim' },
-	--    ---@module 'todo-comments'
-	--    ---@type TodoOptions
-	--    ---@diagnostic disable-next-line: missing-fields
-	--    opts = { signs = false },
-	--  },
+	{ -- Highlight todo, notes, etc in comments
+		"folke/todo-comments.nvim",
+		event = "VimEnter",
+		dependencies = { "nvim-lua/plenary.nvim" },
+		---@module 'todo-comments'
+		---@type TodoOptions
+		---@diagnostic disable-next-line: missing-fields
+		opts = { signs = false },
+	},
 
 	{ -- Collection of various small independent plugins/modules
 		"nvim-mini/mini.nvim",
@@ -642,8 +601,8 @@ require("lazy").setup({
 		branch = "main",
 		-- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
 		config = function()
-			-- ensure basic parser are installed
-			local parsers = { "bash", "c", "c++", "diff", "lua", "luadoc", "markdown", "markdown_inline", "vim" }
+			local parsers =
+				{ "bash", "c", "c++", "python", "diff", "lua", "luadoc", "markdown", "markdown_inline", "vim" }
 			require("nvim-treesitter").install(parsers)
 
 			---@param buf integer
@@ -656,19 +615,14 @@ require("lazy").setup({
 				-- enables syntax highlighting and other treesitter features
 				vim.treesitter.start(buf, language)
 
-				-- enables treesitter based folds
-				-- for more info on folds see `:help folds`
-				-- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-				-- vim.wo.foldmethod = 'expr'
-
 				-- check if treesitter indentation is available for this language, and if so enable it
 				-- in case there is no indent query, the indentexpr will fallback to the vim's built in one
 				local has_indent_query = vim.treesitter.query.get(language, "indents") ~= nil
 
-				-- enables treesitter based indentation
-				if has_indent_query then
-					vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-				end
+				--				-- enables treesitter based indentation
+				--				if has_indent_query then
+				--					vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+				--				end
 			end
 
 			local available_parsers = require("nvim-treesitter").get_available()
@@ -718,33 +672,6 @@ require("lazy").setup({
 			never_draw_over_target = true,
 		},
 	},
-
-	-- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
-	-- init.lua. If you want these files, they are in the repository, so you can just download them and
-	-- place them in the correct locations.
-
-	-- NOTE: Next step on your Neovim journey: Add/Configure additional plugins for Kickstart
-	--
-	--  Here are some example plugins that I've included in the Kickstart repository.
-	--  Uncomment any of the lines below to enable them (you will need to restart nvim).
-	--
-	-- require 'kickstart.plugins.debug',
-	-- require 'kickstart.plugins.indent_line',
-	-- require 'kickstart.plugins.lint',
-	-- require 'kickstart.plugins.autopairs',
-	-- require 'kickstart.plugins.neo-tree',
-	-- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommended keymaps
-
-	-- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-	--    This is the easiest way to modularize your config.
-	--
-	--  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-	-- { import = 'custom.plugins' },
-	--
-	-- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
-	-- Or use telescope!
-	-- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
-	-- you can continue same window with `<space>sr` which resumes last telescope search
 
 	checker = { enabled = true, notify = false },
 })
