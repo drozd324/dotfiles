@@ -13,14 +13,10 @@ vim.schedule(function()
 	vim.o.clipboard = "unnamedplus"
 end)
 
---vim.o.breakindent = true -- Enable break indent
 vim.o.undofile = true
 vim.o.ignorecase = true -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
 vim.o.smartcase = true
 vim.o.signcolumn = "yes" -- Keep signcolumn on by default
-
---vim.o.updatetime = 250 -- Decrease update time
---vim.o.timeoutlen = 300 -- Decrease mapped sequence wait time
 
 -- Configure how new splits should be opened
 vim.o.splitright = true
@@ -57,12 +53,6 @@ vim.keymap.set("n", "<leader>h", function()
 	end)
 end, { desc = "Switch between source/header" })
 
-vim.o.list = true
-vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
-
---vim.o.inccommand = "split" -- Preview substitutions live, as you type!
-
-vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>") -- Clear highlights on search when pressing <Esc> in normal mode See `:help hlsearch`
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 vim.keymap.set("n", "<leader>df", function()
@@ -176,7 +166,7 @@ require("lazy").setup({
 					vim.keymap.set( "n", "<leader>tds", builtin.lsp_document_symbols, { desc = "Telescope show document symbols" })
 					vim.keymap.set( "n", "<leader>tws", builtin.lsp_workspace_symbols, { desc = "Telescope show workspace symbols" })
 
-					-- stylua: ignore start
+					-- stylua: ignore end
 				end,
 			})
 
@@ -205,8 +195,7 @@ require("lazy").setup({
 		dependencies = {
 			{ "mason-org/mason.nvim", opts = {} },
 			"mason-org/mason-lspconfig.nvim",
-			"WhoIsSethDaniel/mason-tool-installer.nvim",
-			{ "j-hui/fidget.nvim", opts = {} },
+			{ "j-hui/fidget.nvim", opts = {} }, -- gives lsp initialisation progress
 		},
 
 		config = function()
@@ -231,7 +220,6 @@ require("lazy").setup({
 
 			local servers = {
 				clangd = {
-
 					cmd = {
 						"clangd",
 						"--background-index-priority=low",
@@ -246,7 +234,9 @@ require("lazy").setup({
 						"--pretty",
 					},
 				},
-				--rust_analyzer = {},
+
+				ruff = {},
+				pylsp = { cmd = { "pylsp" } },
 
 				-- Special Lua Config, as recommended by neovim help docs
 				stylua = {}, -- Used to format Lua code
