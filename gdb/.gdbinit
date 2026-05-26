@@ -18,9 +18,9 @@ set logging on
 
 set extended-prompt \[\e[1;32m\](gdb) \[\e[0;37m\]$ \[\e[0m\]
 
-tui enable
-layout src
-focus cmd
+#tui enable
+#layout src
+#focus cmd
 
 winheight src 30
 

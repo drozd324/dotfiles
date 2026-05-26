@@ -1,3 +1,5 @@
+COLOR_SCHEME = "light"
+
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 vim.g.have_nerd_font = true
@@ -77,6 +79,27 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt_local.tabstop = 2
 		vim.opt_local.shiftwidth = 2
 		vim.opt_local.softtabstop = 2
+	end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "python" },
+	callback = function()
+		vim.opt_local.expandtab = true
+		vim.opt_local.tabstop = 4
+		vim.opt_local.shiftwidth = 4
+		vim.opt_local.softtabstop = 4
+	end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "*" },
+	callback = function()
+		if COLOR_SCHEME == "dark" then
+			vim.cmd("colorscheme evergarden")
+		elseif COLOR_SCHEME == "light" then
+			vim.cmd("colorscheme rose-pine-dawn")
+		end
 	end,
 })
 
@@ -349,10 +372,10 @@ require("lazy").setup({
 		end,
 	},
 
-	{
+	{ -- dark theme
 		"everviolet/nvim",
 		name = "evergarden",
-		priority = 1000, -- Colorscheme plugin is loaded first before any other plugins
+		priority = 1000,
 		opts = {
 			theme = {
 				variant = "fall", -- 'winter'|'fall'|'spring'|'summer'
@@ -364,6 +387,15 @@ require("lazy").setup({
 				float = { color = "mantle", invert_border = false },
 				completion = { color = "surface0" },
 			},
+		},
+	},
+
+	{ -- light theme
+		"rose-pine/neovim",
+		priority = 1000,
+		name = "rose-pine-dawn",
+		styles = {
+			transparency = false,
 		},
 	},
 
@@ -380,5 +412,3 @@ require("lazy").setup({
 
 	checker = { enabled = true, notify = false },
 })
-
-vim.cmd("colorscheme evergarden")
