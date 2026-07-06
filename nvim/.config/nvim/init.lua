@@ -1,4 +1,4 @@
-COLOR_SCHEME = "light"
+COLOR_SCHEME = "dark"
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -89,6 +89,16 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt_local.tabstop = 4
 		vim.opt_local.shiftwidth = 4
 		vim.opt_local.softtabstop = 4
+	end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "lean" },
+	callback = function()
+		vim.opt_local.expandtab = true
+		vim.opt_local.tabstop = 2
+		vim.opt_local.shiftwidth = 2
+		vim.opt_local.softtabstop = 2
 	end,
 })
 
@@ -252,7 +262,6 @@ require("lazy").setup({
 						"--cross-file-rename",
 						"--background-index",
 						"--query-driver",
-						"--clang-tidy",
 						"--log=verbose",
 						"--pretty",
 					},
@@ -260,6 +269,8 @@ require("lazy").setup({
 
 				ruff = {},
 				pylsp = { cmd = { "pylsp" } },
+
+				lean = { "lean-language-server" },
 
 				-- Special Lua Config, as recommended by neovim help docs
 				stylua = {}, -- Used to format Lua code
@@ -366,6 +377,15 @@ require("lazy").setup({
 
 	{
 		"hedyhli/outline.nvim",
+		width = 25,
+		auto_width = {
+			enabled = true,
+			max_width = 40,
+		},
+		-- Whether width is relative to the total width of nvim
+		-- When relative_width = true, this means take 25% of the total
+		-- screen width for outline window.
+		relative_width = true,
 		config = function()
 			vim.keymap.set("n", "<leader>o", "<cmd>Outline<CR>", { desc = "Toggle Outline" })
 			require("outline").setup({})
@@ -408,6 +428,17 @@ require("lazy").setup({
 			damping = 0.9,
 			never_draw_over_target = true,
 		},
+	},
+
+	{
+		"stevearc/oil.nvim",
+		opts = {},
+		dependencies = { { "nvim-mini/mini.icons", opts = {} } },
+		lazy = false,
+	},
+
+	{
+		"Julian/lean.nvim",
 	},
 
 	checker = { enabled = true, notify = false },
