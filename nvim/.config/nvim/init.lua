@@ -55,6 +55,10 @@ vim.keymap.set("n", "<leader>h", function()
 	end)
 end, { desc = "Switch between source/header" })
 
+vim.keymap.set("n", "<leader>ld", function()
+	vim.cmd("LeanInfoviewToggle")
+end, { desc = "Toggle Lean [D]iagnostics" })
+
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 vim.keymap.set("n", "<leader>df", function()
@@ -100,6 +104,14 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt_local.shiftwidth = 2
 		vim.opt_local.softtabstop = 2
 	end,
+})
+
+vim.api.nvim_create_autocmd("QuitPre", {
+  callback = function()
+    if vim.bo.filetype == "lean" then
+      pcall(require("lean.infoview").close_all)
+    end
+  end,
 })
 
 vim.api.nvim_create_autocmd("FileType", {
@@ -270,7 +282,6 @@ require("lazy").setup({
 				ruff = {},
 				pylsp = { cmd = { "pylsp" } },
 
-				lean = { "lean-language-server" },
 
 				-- Special Lua Config, as recommended by neovim help docs
 				stylua = {}, -- Used to format Lua code
@@ -439,6 +450,18 @@ require("lazy").setup({
 
 	{
 		"Julian/lean.nvim",
+		init = function()
+			vim.g.lean_config = {
+				mappings = true,
+				lsp = {
+					on_attach = function(client, bufnr)
+						vim.keymap.set("n", "<leader>lf", function()
+							vim.lsp.buf.format({ bufnr = bufnr })
+						end, { buffer = bufnr, desc = "Format Lean" })
+					end,
+				},
+			}
+		end,
 	},
 
 	checker = { enabled = true, notify = false },

@@ -1,7 +1,0 @@
-clipboard-read = allow
-clipboard-write = allow
-
-app-notifications = no-clipboard-copy
-confirm-close-surface = false
-
-theme = 3024 Day
