@@ -1,8 +1,11 @@
-COLOR_SCHEME = "dark"
+local theme_state_file = vim.fn.stdpath("state") .. "/theme"
+local theme_state = (vim.fn.filereadable(theme_state_file) == 1) and vim.fn.readfile(theme_state_file)[1] or nil
+COLOR_SCHEME = (theme_state == "light") and "light" or "dark"
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 vim.g.have_nerd_font = true
+local map = vim.keymap.set
 vim.o.number = true
 --vim.o.relativenumber = true
 vim.o.mouse = "a"
@@ -24,6 +27,8 @@ vim.o.signcolumn = "yes" -- Keep signcolumn on by default
 vim.o.splitright = true
 vim.o.splitbelow = true
 
+
+
 -- Disable automatic comment continuation on newline
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "*",
@@ -40,8 +45,9 @@ vim.api.nvim_create_user_command("CleanAll", function()
 end, {})
 
 -- Easy switching between source and header (.h and .cpp) files
-vim.keymap.set("n", "<leader>h", function()
+map("n", "<leader>h", function()
 	local params = { uri = vim.uri_from_bufnr(0) }
+	---@diagnostic disable-next-line: param-type-mismatch
 	vim.lsp.buf_request(0, "textDocument/switchSourceHeader", params, function(err, result)
 		if err then
 			vim.notify("Error: " .. tostring(err), vim.log.levels.ERROR)
@@ -55,13 +61,27 @@ vim.keymap.set("n", "<leader>h", function()
 	end)
 end, { desc = "Switch between source/header" })
 
-vim.keymap.set("n", "<leader>ld", function()
+map("n", "<leader>ld", function()
 	vim.cmd("LeanInfoviewToggle")
 end, { desc = "Toggle Lean [D]iagnostics" })
 
-vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
-vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
-vim.keymap.set("n", "<leader>df", function()
+map("n", "<leader>lo", function()
+  local ok, iv = pcall(require("lean.infoview").get_current_infoview)
+  if ok and iv then
+    if iv.window then
+      local new = iv.__orientation_pref == "horizontal" and "vertical" or "horizontal"
+      iv.__orientation_pref = new
+      iv:close()
+      iv:open()
+    else
+      iv:open()
+    end
+  end
+end, { desc = "Toggle Lean infoview orientation" })
+
+map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
+map("n", "<leader>df", function()
 	vim.diagnostic.open_float({ border = "single" })
 end)
 
@@ -107,23 +127,76 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 vim.api.nvim_create_autocmd("QuitPre", {
-  callback = function()
-    if vim.bo.filetype == "lean" then
-      pcall(require("lean.infoview").close_all)
-    end
-  end,
+	callback = function()
+		if vim.bo.filetype == "lean" then
+			pcall(require("lean.infoview").close_all)
+		end
+	end,
 })
+
+-- dark = evergarden (everviolet/nvim, fall variant / green accent)
+-- light = rose-pine-dawn
+local theme_files = {
+	["dark"] = "evergarden",
+	["light"] = "rose-pine-dawn",
+}
+
+local ghostty_themes = {
+	["light"] = "3024 Day",
+}
+
+local function apply_colorscheme()
+	local name = theme_files[COLOR_SCHEME]
+	if name then
+		pcall(vim.cmd.colorscheme, name)
+	end
+end
+
+local function sync_ghostty_theme()
+	local ghostty_config = vim.fn.expand("~/.config/ghostty/config")
+	local lines = {}
+	if vim.fn.filereadable(ghostty_config) == 1 then
+		lines = vim.fn.readfile(ghostty_config)
+	end
+
+	-- remove any existing `theme = ...` entries, keep everything else
+	local out = {}
+	for _, line in ipairs(lines) do
+		if not line:match("^%s*theme%s*=") then
+			out[#out + 1] = line
+		end
+	end
+	local theme = ghostty_themes[COLOR_SCHEME]
+	if theme then
+		out[#out + 1] = "theme = " .. theme
+	end
+	vim.fn.writefile(out, ghostty_config)
+
+	-- ghostty does not watch the config file: ask it to hot-reload via SIGUSR2
+	if vim.fn.executable("pkill") == 1 then
+		vim.fn.system("pkill -USR2 ghostty")
+	end
+end
+
+local function save_theme_state()
+	vim.fn.mkdir(vim.fn.fnamemodify(theme_state_file, ":h"), "p")
+	vim.fn.writefile({ COLOR_SCHEME }, theme_state_file)
+end
 
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = { "*" },
 	callback = function()
-		if COLOR_SCHEME == "dark" then
-			vim.cmd("colorscheme evergarden")
-		elseif COLOR_SCHEME == "light" then
-			vim.cmd("colorscheme rose-pine-dawn")
-		end
+		apply_colorscheme()
 	end,
 })
+
+vim.api.nvim_create_user_command("ToggleTheme", function()
+	COLOR_SCHEME = (COLOR_SCHEME == "dark") and "light" or "dark"
+	apply_colorscheme()
+	sync_ghostty_theme()
+	save_theme_state()
+	vim.notify("Theme: " .. COLOR_SCHEME)
+end, { desc = "Toggle between dark (evergarden) and light (rose-pine-dawn), syncing ghostty" })
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -167,21 +240,21 @@ require("lazy").setup({
 
 			-- See `:help telescope.builtin`
 			local builtin = require("telescope.builtin")
-			--      vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
-			--      vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-			--      vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
-			--      vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-			--      vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-			--      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-			--      vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-			--      vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
-			--      vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-			--      vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
-			--      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+			--      map('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
+			--      map('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
+			--      map('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
+			--      map('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
+			--      map({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
+			--      map('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
+			--      map('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
+			--      map('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
+			map("n", "<leader>s.", builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+			map("n", "<leader>sc", builtin.commands, { desc = "[S]earch [C]ommands" })
+			map("n", "<leader><leader>", builtin.buffers, { desc = "[ ] Find existing buffers" })
 
-			vim.keymap.set("n", "<leader>fd", builtin.find_files, { desc = "Telescope find files" })
-			vim.keymap.set("n", "<leader>rg", builtin.live_grep, { desc = "Telescope live grep" })
-			vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
+			map("n", "<leader>fd", builtin.find_files, { desc = "Telescope find files" })
+			map("n", "<leader>rg", builtin.live_grep, { desc = "Telescope live grep" })
+			map("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
 
 			-- turn on linenumbers in telescope preview
 			vim.cmd("autocmd User TelescopePreviewerLoaded setlocal number")
@@ -192,44 +265,44 @@ require("lazy").setup({
 					local buf = event.buf
 					-- stylua: ignore start
 
-					--          vim.keymap.set('n', 'grr', builtin.lsp_references, { buffer = buf, desc = '[G]oto [R]eferences' })
-					--          vim.keymap.set('n', 'gri', builtin.lsp_implementations, { buffer = buf, desc = '[G]oto [I]mplementation' })
-					--          vim.keymap.set('n', 'grd',
+					--          map('n', 'grr', builtin.lsp_references, { buffer = buf, desc = '[G]oto [R]eferences' })
+					--          map('n', 'gri', builtin.lsp_implementations, { buffer = buf, desc = '[G]oto [I]mplementation' })
+					--          map('n', 'grd',
 					--
-					--          vim.keymap.set('n', 'gO', builtin.lsp_document_symbols, { buffer = buf, desc = 'Open Document Symbols' })
-					--          vim.keymap.set('n', 'gW', builtin.lsp_dynamic_workspace_symbols, { buffer = buf, desc = 'Open Workspace Symbols' })
+					--          map('n', 'gO', builtin.lsp_document_symbols, { buffer = buf, desc = 'Open Document Symbols' })
+					--          map('n', 'gW', builtin.lsp_dynamic_workspace_symbols, { buffer = buf, desc = 'Open Workspace Symbols' })
 					--
-					--          vim.keymap.set('n', 'grt', builtin.lsp_type_definitions, { buffer = buf, desc = '[G]oto [T]ype Definition' })
+					--          map('n', 'grt', builtin.lsp_type_definitions, { buffer = buf, desc = '[G]oto [T]ype Definition' })
 
-					--vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+					--map("n", "gD", vim.lsp.buf.declaration, opts)
 
-					vim.keymap.set("n", "gd", builtin.lsp_definitions, { buffer = buf, desc = "[G]oto [D]efinition" })
-					vim.keymap.set( "n", "gi", builtin.lsp_implementations, { buffer = buf, desc = "[G]oto [I]mplementation" })
-					vim.keymap.set("n", "<leader>rr", builtin.lsp_references, { desc = "Telescope show lsp refs" })
-					vim.keymap.set( "n", "<leader>ic", builtin.lsp_incoming_calls, { desc = "Telescope show incoming calls" })
-					vim.keymap.set( "n", "<leader>ci", builtin.lsp_outgoing_calls, { desc = "Telescope show ougoing calls" })
-					vim.keymap.set( "n", "<leader>tds", builtin.lsp_document_symbols, { desc = "Telescope show document symbols" })
-					vim.keymap.set( "n", "<leader>tws", builtin.lsp_workspace_symbols, { desc = "Telescope show workspace symbols" })
+					map("n", "gd", builtin.lsp_definitions, { buffer = buf, desc = "[G]oto [D]efinition" })
+					map( "n", "gi", builtin.lsp_implementations, { buffer = buf, desc = "[G]oto [I]mplementation" })
+					map("n", "<leader>rr", builtin.lsp_references, { desc = "Telescope show lsp refs" })
+					map( "n", "<leader>ic", builtin.lsp_incoming_calls, { desc = "Telescope show incoming calls" })
+					map( "n", "<leader>ci", builtin.lsp_outgoing_calls, { desc = "Telescope show ougoing calls" })
+					map( "n", "<leader>tds", builtin.lsp_document_symbols, { desc = "Telescope show document symbols" })
+					map( "n", "<leader>tws", builtin.lsp_workspace_symbols, { desc = "Telescope show workspace symbols" })
 
 					-- stylua: ignore end
 				end,
 			})
 
-			vim.keymap.set("n", "<leader>/", function()
+			map("n", "<leader>/", function()
 				builtin.current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
 					winblend = 10,
 					previewer = false,
 				}))
 			end, { desc = "[/] Fuzzily search in current buffer" })
 
-			vim.keymap.set("n", "<leader>s/", function()
+			map("n", "<leader>s/", function()
 				builtin.live_grep({
 					grep_open_files = true,
 					prompt_title = "Live Grep in Open Files",
 				})
 			end, { desc = "[S]earch [/] in Open Files" })
 
-			vim.keymap.set("n", "<leader>sn", function()
+			map("n", "<leader>sn", function()
 				builtin.find_files({ cwd = vim.fn.stdpath("config") })
 			end, { desc = "[S]earch [N]eovim files" })
 		end,
@@ -256,10 +329,90 @@ require("lazy").setup({
 					map("gra", vim.lsp.buf.code_action, "[G]oto Code [A]ction", { "n", "x" })
 					map("grD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
 
-					vim.keymap.set("n", "<leader>lf", "<cmd>lua vim.lsp.buf.format()<CR>")
-					vim.keymap.set("v", "<leader>lf", "<cmd>lua vim.lsp.buf.format()<CR>")
-					vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename)
-					vim.keymap.set("n", "<leader>ss", "<cmd>lua vim.lsp.buf.document_symbol()<CR>")
+					local function refs_by_kind(kind)
+						local varname = vim.fn.expand("<cword>"):match("[%a_][%w_]*")
+						if not varname then
+							vim.notify("No identifier under cursor", vim.log.levels.WARN)
+							return
+						end
+						if vim.fn.executable("clang-query") ~= 1 then
+							vim.notify("Install clang-query for read/write references", vim.log.levels.WARN)
+							return
+						end
+
+						local file = vim.fn.expand("%:p")
+						local all_matcher = 'declRefExpr(to(varDecl(hasName("'
+							.. varname ..
+							'"))), unless(isExpansionInSystemHeader()))'
+						local write_matcher = 'declRefExpr(to(varDecl(hasName("'
+							.. varname ..
+							'"))), hasParent(anyOf(binaryOperator(isAssignmentOperator()), unaryOperator(anyOf(hasOperatorName("++"), hasOperatorName("--"))))), unless(isExpansionInSystemHeader()))'
+
+						local function run(m)
+							return vim.fn.system({ "clang-query", file }, "match " .. m .. "\n")
+						end
+
+						local function parse(output)
+							local seen, locs = {}, {}
+							for line in output:gmatch("[^\n]+") do
+								local f, l, c = line:match("^(.-):(%d+):(%d+): note:")
+								if f and l and c then
+									local key = f .. ":" .. l .. ":" .. c
+									if not seen[key] then
+										seen[key] = true
+										locs[#locs + 1] = { filename = f, lnum = tonumber(l), col = tonumber(c) }
+									end
+								end
+							end
+							return locs
+						end
+
+						local all_locs = parse(run(all_matcher))
+						local write_locs = parse(run(write_matcher))
+
+						if #all_locs == 0 then
+							vim.notify("No references to '" .. varname .. "'", vim.log.levels.INFO)
+							return
+						end
+
+						local write_set = {}
+						for _, w in ipairs(write_locs) do
+							write_set[w.filename .. ":" .. w.lnum .. ":" .. w.col] = true
+						end
+
+						local target = {}
+						for _, loc in ipairs(all_locs) do
+							local key = loc.filename .. ":" .. loc.lnum .. ":" .. loc.col
+							local is_write = write_set[key] ~= nil
+							if (kind == 1 and is_write) or (kind ~= 1 and not is_write) then
+								target[#target + 1] = loc
+							end
+						end
+
+						if #target == 0 then
+							vim.notify("No " .. (kind == 1 and "write" or "read") .. " refs to '"
+								.. varname .. "'", vim.log.levels.INFO)
+							return
+						end
+
+						local items = {}
+						for _, loc in ipairs(target) do
+							items[#items + 1] = {
+								filename = loc.filename,
+								lnum = loc.lnum,
+								col = loc.col,
+							}
+						end
+						vim.fn.setqflist({}, " ", { items = items })
+						require("telescope.builtin").quickfix()
+					end
+					map("<leader>rd", function() refs_by_kind(2) end, "Read references")
+					map("<leader>rw", function() refs_by_kind(1) end, "Write references")
+
+					map("<leader>lf", "<cmd>lua vim.lsp.buf.format()<CR>", "Format buffer")
+					map("<leader>lf", "<cmd>lua vim.lsp.buf.format()<CR>", "Format selection", "v")
+					map("<leader>rn", vim.lsp.buf.rename, "Rename")
+					map("<leader>ss", "<cmd>lua vim.lsp.buf.document_symbol()<CR>", "Document symbols")
 				end,
 			})
 
@@ -281,7 +434,13 @@ require("lazy").setup({
 
 				ruff = {},
 				pylsp = { cmd = { "pylsp" } },
-
+				yamlls = {
+					settings = {
+						yaml = { schemaStore = { enable = true } },
+						redhat = { telemetry = { enabled = false } },
+					},
+				},
+				-- lean is not here; lean.nvim handles its own LSP (leanls) via lsp/leanls.lua
 
 				-- Special Lua Config, as recommended by neovim help docs
 				stylua = {}, -- Used to format Lua code
@@ -388,17 +547,17 @@ require("lazy").setup({
 
 	{
 		"hedyhli/outline.nvim",
-		width = 25,
+		width = 33,
 		auto_width = {
-			enabled = true,
+			enabled = false,
 			max_width = 40,
 		},
 		-- Whether width is relative to the total width of nvim
-		-- When relative_width = true, this means take 25% of the total
-		-- screen width for outline window.
+		-- When relative_width = true, this means take 33% of the total
+		-- screen width for outline window (1/3 of the horizontal space).
 		relative_width = true,
 		config = function()
-			vim.keymap.set("n", "<leader>o", "<cmd>Outline<CR>", { desc = "Toggle Outline" })
+			map("n", "<leader>o", "<cmd>Outline<CR>", { desc = "Toggle Outline" })
 			require("outline").setup({})
 		end,
 	},
@@ -453,9 +612,18 @@ require("lazy").setup({
 		init = function()
 			vim.g.lean_config = {
 				mappings = true,
+				infoview = {
+					-- vertical infoview takes 1/3 of the horizontal screen width
+					width = 1 / 3,
+					-- horizontal infoview takes 1/3 of the vertical screen height
+					height = 1 / 3,
+				},
+				on_imports_out_of_date = function(bufnr)
+					require("lean.lsp").restart_file(bufnr)
+				end,
 				lsp = {
-					on_attach = function(client, bufnr)
-						vim.keymap.set("n", "<leader>lf", function()
+					on_attach = function(_, bufnr)
+						map("n", "<leader>lf", function()
 							vim.lsp.buf.format({ bufnr = bufnr })
 						end, { buffer = bufnr, desc = "Format Lean" })
 					end,
