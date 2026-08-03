@@ -328,6 +328,18 @@ require("lazy").setup({
 						vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
 					end
 
+					vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
+
+					map("K", vim.lsp.buf.hover, "Hover")
+					map("<leader>thp", function()
+						vim.lsp.buf.typehierarchy("supertypes")
+					end, "Type hierarchy [P]arents")
+					map("<leader>thc", function()
+						vim.lsp.buf.typehierarchy("subtypes")
+					end, "Type hierarchy [C]hildren")
+
+					vim.lsp.codelens.enable(true, { bufnr = event.buf })
+
 					map("grn", vim.lsp.buf.rename, "[R]e[n]ame")
 					map("gra", vim.lsp.buf.code_action, "[G]oto Code [A]ction", { "n", "x" })
 					map("grD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
@@ -417,9 +429,9 @@ require("lazy").setup({
 					map("<leader>rn", vim.lsp.buf.rename, "Rename")
 					map("<leader>ss", "<cmd>lua vim.lsp.buf.document_symbol()<CR>", "Document symbols")
 				end,
-			})
+		})
 
-			local servers = {
+		local servers = {
 				clangd = {
 					cmd = {
 						"clangd",
@@ -432,6 +444,7 @@ require("lazy").setup({
 						"--query-driver",
 						"--log=verbose",
 						"--pretty",
+						"--inlay-hints=yes",
 					},
 				},
 
