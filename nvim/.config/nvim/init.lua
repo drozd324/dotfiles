@@ -172,9 +172,12 @@ local function sync_ghostty_theme()
 	end
 	vim.fn.writefile(out, ghostty_config)
 
-	-- ghostty does not watch the config file: ask it to hot-reload via SIGUSR2
+	-- ghostty does not watch the config file: hot-reload it via SIGUSR2
+	-- opencode's `system` theme re-queries the terminal palette on SIGUSR2,
+	-- so it repaints light/dark to match the new ghostty background
 	if vim.fn.executable("pkill") == 1 then
 		vim.fn.system("pkill -USR2 ghostty")
+		vim.fn.system("pkill -USR2 opencode")
 	end
 end
 
