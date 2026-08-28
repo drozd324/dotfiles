@@ -44,6 +44,26 @@ vim.api.nvim_create_user_command("CleanAll", function()
 	vim.cmd("!rm -rf $HOME/.cache/nvim/")
 end, {})
 
+vim.api.nvim_create_user_command("CacheDelete", function()
+	local dirs = {
+		vim.fn.stdpath("cache"),
+		vim.fn.stdpath("data"),
+		vim.fn.stdpath("state"),
+	}
+	local seen = {}
+	for _, d in ipairs(dirs) do
+		if d ~= "" and not seen[d] then
+			seen[d] = true
+			if vim.fn.isdirectory(d) == 1 then
+				vim.cmd("!rm -rfv " .. vim.fn.shellescape(d))
+			else
+				vim.notify("Not found: " .. d, vim.log.levels.WARN)
+			end
+		end
+	end
+	vim.notify("CacheDelete done", vim.log.levels.INFO)
+end, { desc = "rm -rfv nvim cache/data/state" })
+
 -- Easy switching between source and header (.h and .cpp) files
 map("n", "<leader>h", function()
 	local params = { uri = vim.uri_from_bufnr(0) }
@@ -438,15 +458,15 @@ require("lazy").setup({
 						"--background-index-priority=low",
 						"--pch-storage=disk",
 						"--clang-tidy",
-						"--clang-tidy-checks=*",
-						"--cross-file-rename",
 						"--background-index",
 						"--query-driver",
 						"--log=verbose",
 						"--pretty",
-						"--inlay-hints=yes",
+						"--inlay-hints=1",
 					},
 				},
+
+				ts_ls = {}, -- JavaScript / TypeScript language server
 
 				ruff = {},
 				pylsp = { cmd = { "pylsp" } },
