@@ -12,7 +12,7 @@
     }
   },
   "skills": {
-    "paths": [".opencode/skills"]
+    "paths": ["~/.config/opencode/skills"]
   },
   "permission": "allow"
 }

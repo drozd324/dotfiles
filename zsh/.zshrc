@@ -22,7 +22,7 @@ alias vi=nvim
 alias ls='ls -v --color="auto" --time-style=posix-long-iso --group-directories-first'
 alias open=xdg-open
 
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 
-export PATH="$HOME/apps/zen:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
+# Source machine-specific config (not tracked in dotfiles)
+[[ -f "$HOME/.myzshrc" ]] && source "$HOME/.myzshrc"
